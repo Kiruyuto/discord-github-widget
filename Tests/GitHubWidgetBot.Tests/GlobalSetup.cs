@@ -1,0 +1,1 @@
+[assembly: Retry(times: 3)]

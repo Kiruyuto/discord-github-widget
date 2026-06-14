@@ -1,0 +1,92 @@
+# ====================
+# ======= .NET =======
+# ====================
+
+# Localsettings files
+local.settings.json
+!local.settings.json.example
+
+appsettings.json
+appsettings.*.json
+!appsettings.Example.json
+!appsettings.Development.json
+!appsettings.Test.json
+
+# User-specific files
+*.suo
+*.user
+*.userosscache
+
+# Build results
+[Dd]ebug/
+[Dd]ebugPublic/
+[Rr]elease/
+[Rr]eleases/
+x64/
+x86/
+bld/
+[Bb]in/
+[Oo]bj/
+[Pp]ublish/
+
+# Publish Web Output
+*.[Pp]ublish.xml
+*.azurePubxml
+*.pubxml
+*.publishproj
+
+# Coverlet & Code Coverage
+coverage/
+coverage*.json
+coverage*.xml
+coverage*.info
+*.coverage
+*.coveragexml
+TestResults/
+
+# VS Code files
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+*.code-workspace
+
+# Nuget configuration file
+nuget.config
+
+# NuGet packages
+*.nupkg
+*.snupkg
+
+# IntelliJ files
+**/.idea/**/[Ww]orkspace.xml
+**/.idea/**/[Tt]asks.xml
+**/.idea/**/[Uu]sage.statistics.xml
+**/.idea/**/*.iml
+**/.idea/**/projectSettingsUpdater.xml
+**/.idea/**/modules.xml
+**/.idea/**/contentModel.xml
+**/.idea/shelf/
+**/.idea/**/httpRequests/
+**/.idea/**/dataSources/
+**/.idea/**/dataSources.local.xml
+**/.idea/**/tasks.xml
+**/.idea/**/usage.statistics.xml
+**/.idea/**/dictionaries
+**/.idea/**/shelf
+**/.idea/**/dataSources.ids
+**/.idea/**/sqlDataSources.xml
+**/.idea/**/dynamic.xml
+**/.idea/**/uiDesigner.xml
+**/.idea/**/dbnavigator.xml
+**/.idea/**/aws.xml
+**/.idea/**/misc.xml
+**/.idea/**/Docker/
+
+# ====================
+# ======= Misc =======
+# ====================
+[Dd]esktop.ini
+.DS_Store
+.fleet
