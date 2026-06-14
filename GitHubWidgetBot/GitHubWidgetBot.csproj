@@ -1,0 +1,27 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="GitHubWidgetBot.Tests" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Kiruyuto.DotNet.Config">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+    <PackageReference Include="Microsoft.Extensions.Hosting"/>
+    <PackageReference Include="NetCord"/>
+    <PackageReference Include="NetCord.Hosting"/>
+    <PackageReference Include="NetCord.Hosting.Services"/>
+    <PackageReference Include="NetCord.Services"/>
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="appsettings.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+</Project>

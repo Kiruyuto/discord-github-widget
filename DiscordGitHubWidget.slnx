@@ -1,0 +1,10 @@
+<Solution>
+  <Folder Name="/Solution Items/">
+    <File Path="Directory.Build.props" />
+    <File Path="Directory.Packages.props" />
+  </Folder>
+  <Folder Name="/Tests/">
+    <Project Path="Tests/GitHubWidgetBot.Tests/GitHubWidgetBot.Tests.csproj" />
+  </Folder>
+  <Project Path="GitHubWidgetBot/GitHubWidgetBot.csproj" />
+</Solution>

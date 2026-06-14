@@ -1,0 +1,21 @@
+root = true
+# Also see: https://github.com/Kiruyuto/.NET-Config/tree/master/Kiruyuto.DotNet.Config/build
+
+[*]
+insert_final_newline = false
+
+[*.md]
+trim_trailing_whitespace = false
+
+[*.cs]
+# See: https://github.com/dotnet/roslyn/issues/41171#issuecomment-2733437854
+dotnet_diagnostic.RS0030.severity = warning
+
+[**/*.Tests/**/*.cs]
+# dotnet_diagnostic.CA1822.severity = none
+dotnet_diagnostic.VSTHRD200.severity = none # Use Async suffix for async methods
+dotnet_diagnostic.CA1707.severity = none # Identifiers should not contain underscores
+
+[*.{csproj,sln,slnx,props}]
+indent_size = 2
+indent_style = space

@@ -1,0 +1,7 @@
+* text eol=lf
+
+*.cs diff=csharp
+
+*.png binary
+*.jpg binary
+*.gif binary
