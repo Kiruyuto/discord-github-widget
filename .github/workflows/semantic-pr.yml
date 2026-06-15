@@ -1,0 +1,48 @@
+name: "Semantic PR"
+
+on:
+  pull_request_target:
+    types: ["opened", "reopened", "synchronize", "edited", "ready_for_review"]
+    branches: ["master"]
+
+concurrency:
+  group: "${{ github.workflow }}-${{ github.event.pull_request.number }}"
+  cancel-in-progress: true
+
+permissions: {}
+
+jobs:
+  validate-title:
+    runs-on: ["ubuntu-slim"]
+    if: ${{ github.event.pull_request.draft == false }}
+    timeout-minutes: 3
+    permissions:
+      pull-requests: read
+    steps:
+      - name: "Check PR Title"
+        id: lint_pr_title
+        uses: amannn/action-semantic-pull-request@48f256284bd46cdaab1048c3721360e808335d50 # v6.1.1
+        with:
+          types: |
+            feat
+            fix
+            ci
+            chore
+            docs
+            test
+            style
+            refactor
+            perf
+          requireScope: false
+          subjectPattern: ^([A-Z]).+$
+          subjectPatternError: |
+            The subject "{subject}" found in the pull request title "{title}" didn't match the configured pattern.
+            Please ensure that the subject starts with an uppercase character.
+            Example:
+            feat(ui): Add `Button` component
+            ^    ^    ^
+            |    |    |__ Subject
+            |    |_______ Scope
+            |____________ Type
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

@@ -1,0 +1,48 @@
+name: "CI"
+
+on:
+  pull_request:
+    types: ["opened", "reopened", "synchronize"]
+  push:
+    branches: ["master"]
+
+concurrency:
+  group: "${{ github.workflow }}-${{ github.head_ref || github.ref }}"
+  cancel-in-progress: true
+
+permissions: {}
+
+jobs:
+  dotnet-ci:
+    runs-on: ["ubuntu-latest"]
+    strategy:
+      matrix:
+        configuration: ["Debug", "Release"]
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    env:
+      DOTNET_NOLOGO: "true"
+      TUNIT_DISABLE_GITHUB_REPORTER: "true"
+    steps:
+      - name: "Checkout repo"
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+        with:
+          persist-credentials: false
+
+      - name: "Setup .NET"
+        uses: actions/setup-dotnet@9a946fdbd5fb07b82b2f5a4466058b876ab72bb2 # v5.3.0
+        with:
+          global-json-file: "global.json"
+
+      - name: "Restore dependencies"
+        run: dotnet restore
+
+      - name: "Build"
+        run: dotnet build --no-restore --verbosity diagnostic --configuration ${{ matrix.configuration }}
+
+      - name: "Format"
+        run: dotnet format --no-restore --verbosity diagnostic --severity info --verify-no-changes
+
+      - name: "Test"
+        run: dotnet test --no-restore --no-build --verbosity diagnostic --configuration ${{ matrix.configuration }} --report-github
