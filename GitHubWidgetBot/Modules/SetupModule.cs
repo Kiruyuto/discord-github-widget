@@ -6,12 +6,10 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using NetCord;
 using NetCord.Rest;
-using NetCord.Services;
 using NetCord.Services.ApplicationCommands;
 
 namespace GitHubWidgetBot.Modules;
 
-[RequireUserPermissions<ApplicationCommandContext>(Permissions.UseApplicationCommands | Permissions.SendMessages)]
 internal class SetupModule(ILogger<SetupModule> logger, GitHubService gitHubService, ApplicationDbContext dbContext, IOptions<DiscordOptions> discordOptions) : ApplicationCommandModule<ApplicationCommandContext>
 {
     [SlashCommand(name: "setup", description: "Setup or refresh your widget")]

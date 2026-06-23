@@ -60,8 +60,8 @@ internal static class Program
             })
             .AddApplicationCommands(options =>
             {
-                options.DefaultContexts = [InteractionContextType.BotDMChannel, InteractionContextType.Guild, InteractionContextType.DMChannel];
-                options.DefaultIntegrationTypes = [ApplicationIntegrationType.UserInstall, ApplicationIntegrationType.GuildInstall];
+                options.DefaultContexts = [InteractionContextType.BotDMChannel, InteractionContextType.DMChannel];
+                options.DefaultIntegrationTypes = [ApplicationIntegrationType.UserInstall];
                 options.AutoRegisterCommands = true;
             })
             .AddComponentInteractions<ModalInteraction, ModalInteractionContext>()

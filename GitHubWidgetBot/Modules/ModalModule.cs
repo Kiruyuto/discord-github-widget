@@ -95,7 +95,7 @@ internal class ModalModule(ILogger<ModalModule> logger, GitHubService gitHubServ
             await Context.Client.Rest.SendRequestAsync(
                 method: HttpMethod.Patch,
                 content: content,
-                route: $"/applications/{Context.Client.Id}/users/{userId}/identities/{userId}/profile"
+                route: $"/applications/{Context.Client.Id}/users/{userId}/identities/0/profile"
             );
         }
         catch (Exception ex)
