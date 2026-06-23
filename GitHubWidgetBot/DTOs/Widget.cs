@@ -78,9 +78,9 @@ internal readonly record struct Widget(Widget.DataPayload Data)
     private void WriteJson(Utf8JsonWriter writer)
     {
         writer.WriteStartObject();
+        writer.WriteString("username"u8, Data.Username);
         writer.WritePropertyName("data"u8);
         writer.WriteStartObject();
-        writer.WriteString("username"u8, Data.Username);
         writer.WritePropertyName("dynamic"u8);
         writer.WriteStartArray();
 

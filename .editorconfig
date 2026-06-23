@@ -19,3 +19,6 @@ dotnet_diagnostic.CA1707.severity = none # Identifiers should not contain unders
 [*.{csproj,sln,slnx,props}]
 indent_size = 2
 indent_style = space
+
+[**/Persistence/Migrations/*]
+generated_code = true

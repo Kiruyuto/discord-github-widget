@@ -1,1 +1,2 @@
 # discord-github-widget
+[![CI Status](https://github.com/Kiruyuto/discord-github-widget/actions/workflows/ci.yml/badge.svg?event=push)](https://github.com/Kiruyuto/discord-github-widget/actions/workflows/ci.yml)

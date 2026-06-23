@@ -1,0 +1,18 @@
+﻿<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="compose" type="docker-deploy" factoryName="docker-compose.yml" server-name="Docker">
+    <deployment type="docker-compose.yml">
+      <settings>
+        <option name="removeImagesOnComposeDown" value="LOCAL" />
+        <option name="removeVolumesOnComposeDown" value="true" />
+        <option name="commandLineOptions" value="--build" />
+        <option name="sourceFilePath" value="compose.yaml" />
+        <option name="upForceRecreate" value="true" />
+        <option name="upRemoveOrphans" value="true" />
+      </settings>
+    </deployment>
+    <EXTENSION ID="com.jetbrains.rider.docker.debug" isFastModeEnabled="false" isSslEnabled="false" />
+    <method v="2">
+      <option name="Build" default="false" projectName="GitHubWidgetBot" projectPath="$PROJECT_DIR$/GitHubWidgetBot/GitHubWidgetBot.csproj" />
+    </method>
+  </configuration>
+</component>
