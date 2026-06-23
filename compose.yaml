@@ -1,0 +1,31 @@
+name: "github-discord-widget"
+
+networks:
+  db-network:
+    driver: bridge
+
+volumes:
+  postgres-data:
+
+services:
+  postgres:
+    container_name: postgres-db
+    image: postgres:18.3-trixie
+    restart: unless-stopped
+    shm_size: 256mb
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-wdgt-db}
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      start_period: 5s
+      interval: 10s
+      timeout: 5s
+      retries: 3
+    volumes:
+      - postgres-data:/var/lib/postgresql
+    networks:
+      - db-network

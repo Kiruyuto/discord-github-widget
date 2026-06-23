@@ -1,5 +1,9 @@
 using GitHubWidgetBot.Modules;
+using GitHubWidgetBot.Persistence;
 using GitHubWidgetBot.Services;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Migrations;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
@@ -21,6 +25,7 @@ internal static class Program
 
         AddNetCord(builder.Services);
         AddGitHub(builder.Services);
+        AddDatabase(builder.Services, builder.Configuration, builder.Environment);
 
         var host = RegisterCommandModules(builder.Build());
 
@@ -30,6 +35,13 @@ internal static class Program
     private static void AddNetCord(IServiceCollection serviceCollection)
     {
         serviceCollection
+            .AddOptions<DiscordOptions>()
+            .BindConfiguration(DiscordOptions.SectionName)
+            .ValidateOnStart();
+
+        serviceCollection.AddSingleton<IValidateOptions<DiscordOptions>, DiscordOptionsValidator>();
+
+        serviceCollection
             .AddDiscordShardedGateway(options =>
             {
                 options.Intents = null;
@@ -37,16 +49,23 @@ internal static class Program
 
                 options.Presence = new PresenceProperties(UserStatusType.Online)
                 {
-                    Activities = [new UserActivityProperties(GlobalConstants.Version, UserActivityType.Custom) { State = $"🔧 Build v{GlobalConstants.Version}" }]
+                    Activities =
+                    [
+                        new UserActivityProperties(ApplicationConfiguration.Version, UserActivityType.Custom)
+                        {
+                            State = $"🔧 Build v{ApplicationConfiguration.Version}"
+                        }
+                    ]
                 };
             })
             .AddApplicationCommands(options =>
             {
                 options.DefaultContexts = [InteractionContextType.BotDMChannel, InteractionContextType.Guild, InteractionContextType.DMChannel];
-                options.DefaultIntegrationTypes = [ApplicationIntegrationType.UserInstall];
+                options.DefaultIntegrationTypes = [ApplicationIntegrationType.UserInstall, ApplicationIntegrationType.GuildInstall];
                 options.AutoRegisterCommands = true;
             })
-            .AddComponentInteractions<ModalInteraction, ModalInteractionContext>();
+            .AddComponentInteractions<ModalInteraction, ModalInteractionContext>()
+            .AddComponentInteractions<ButtonInteraction, ButtonInteractionContext>();
     }
 
     [SuppressMessage("Minor Code Smell", "S1075:URIs should not be hardcoded")]
@@ -62,11 +81,30 @@ internal static class Program
         serviceCollection.AddSingleton<GitHubService>();
     }
 
+    private static void AddDatabase(IServiceCollection serviceCollection, ConfigurationManager configuration, IHostEnvironment environment)
+    {
+        var databaseConnectionString = configuration[ApplicationConfiguration.Database.ConnectionString];
+        ArgumentException.ThrowIfNullOrWhiteSpace(databaseConnectionString);
+
+        serviceCollection.AddDbContextPool<ApplicationDbContext>(options =>
+        {
+            options.UseNpgsql(databaseConnectionString, builder => builder.MigrationsHistoryTable(HistoryRepository.DefaultTableName, schema: ApplicationConfiguration.Database.SchemaName));
+            options.UseSnakeCaseNamingConvention();
+
+            if (!environment.IsProduction())
+            {
+                options.EnableSensitiveDataLogging();
+                options.EnableDetailedErrors();
+            }
+        });
+    }
+
     private static IHost RegisterCommandModules(IHost host)
     {
         host.AddApplicationCommandModule<SetupModule>();
 
-        host.AddComponentInteractionModule<ModalModule>();
+        host.AddComponentInteractionModule<ButtonInteractionContext, ButtonModule>();
+        host.AddComponentInteractionModule<ModalInteractionContext, ModalModule>();
 
         return host;
     }

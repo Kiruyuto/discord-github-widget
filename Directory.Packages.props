@@ -4,13 +4,18 @@
     <CentralPackageTransitivePinningEnabled>true</CentralPackageTransitivePinningEnabled>
   </PropertyGroup>
   <ItemGroup>
+    <PackageVersion Include="EFCore.NamingConventions" Version="10.0.1" />
     <PackageVersion Include="GitHubActionsTestLogger" Version="3.0.4" />
     <PackageVersion Include="Kiruyuto.DotNet.Config" Version="2.4.8" />
+    <PackageVersion Include="Microsoft.EntityFrameworkCore" Version="10.0.9" />
+    <PackageVersion Include="Microsoft.EntityFrameworkCore.Design" Version="10.0.9" />
+    <PackageVersion Include="Microsoft.EntityFrameworkCore.Relational" Version="10.0.9" />
     <PackageVersion Include="Microsoft.Extensions.Hosting" Version="10.0.9" />
     <PackageVersion Include="NetCord" Version="1.0.0-beta.2" />
     <PackageVersion Include="NetCord.Hosting" Version="1.0.0-beta.2" />
     <PackageVersion Include="NetCord.Hosting.Services" Version="1.0.0-beta.2" />
     <PackageVersion Include="NetCord.Services" Version="1.0.0-beta.2" />
-    <PackageVersion Include="TUnit" Version="1.55.2" />
+    <PackageVersion Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="10.0.2" />
+    <PackageVersion Include="TUnit" Version="1.56.18" />
   </ItemGroup>
 </Project>
