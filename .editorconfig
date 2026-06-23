@@ -6,6 +6,7 @@ insert_final_newline = false
 
 [*.md]
 trim_trailing_whitespace = false
+insert_final_newline = true
 
 [*.cs]
 # See: https://github.com/dotnet/roslyn/issues/41171#issuecomment-2733437854

@@ -10,9 +10,14 @@ using NetCord.Services.ApplicationCommands;
 
 namespace GitHubWidgetBot.Modules;
 
-internal class SetupModule(ILogger<SetupModule> logger, GitHubService gitHubService, ApplicationDbContext dbContext, IOptions<DiscordOptions> discordOptions) : ApplicationCommandModule<ApplicationCommandContext>
+internal class ApplicationCommandsModule(
+    ILogger<ApplicationCommandsModule> logger,
+    GitHubService gitHubService,
+    ApplicationDbContext dbContext,
+    IOptions<DiscordOptions> discordOptions
+) : ApplicationCommandModule<ApplicationCommandContext>
 {
-    [SlashCommand(name: "setup", description: "Setup or refresh your widget")]
+    [SlashCommand(name: "setup", description: "Setup or refresh your widget using GitHub OAuth2 flow")]
     public async Task SetupAsync()
     {
         var userId = Context.User.Id;
@@ -20,6 +25,20 @@ internal class SetupModule(ILogger<SetupModule> logger, GitHubService gitHubServ
 
         await Context.Interaction.SendResponseAsync(InteractionCallback.DeferredMessage(MessageFlags.Ephemeral));
         if (logger.IsEnabled(LogLevel.Debug)) logger.LogDebug("Deferred setup response for Discord user {DiscordUserId}", userId);
+
+        var permissionResult = await GetConfigurationPermissionAsync(userId);
+        if (!permissionResult)
+        {
+            await Context.Interaction.ModifyResponseAsync(x => { x.Content = "Only the Discord application owner or team members can configure this widget."; });
+            return;
+        }
+
+        if (!gitHubService.IsOAuthDeviceFlowConfigured)
+        {
+            if (logger.IsEnabled(LogLevel.Warning)) logger.LogWarning("GitHub OAuth Device Flow is not configured. Cannot proceed with setup for Discord user {DiscordUserId}", userId);
+            await Context.Interaction.ModifyResponseAsync(x => { x.Content = "GitHub OAuth Device Flow is not configured. Set `GitHub__OAuthClientId` and restart the bot to use `/setup`."; });
+            return;
+        }
 
         var gitHubDeviceFlow = await gitHubService.StartDeviceAuthorizationAsync();
         if (gitHubDeviceFlow is null)
@@ -30,7 +49,7 @@ internal class SetupModule(ILogger<SetupModule> logger, GitHubService gitHubServ
         }
 
         const string DiscordSetupInstr =
-            "## Discord\n" +
+            "## Discord (Optional if you have already done it)\n" +
             "First, authorize this Discord application with the `[Authorize Discord]` button below.\n" +
             "Discord may show a broad permission list even though this app only uses the `sdk.social_layer` scope. " +
             "That is how Discord profile widgets are authorized.\n" +
@@ -100,5 +119,73 @@ internal class SetupModule(ILogger<SetupModule> logger, GitHubService gitHubServ
         });
 
         if (logger.IsEnabled(LogLevel.Information)) logger.LogInformation("Sent setup instructions to Discord user {DiscordUserId}", userId);
+    }
+
+    [SlashCommand(name: "setup-manual", description: "Setup or refresh your widget by entering a GitHub username")]
+    public async Task SetupManualAsync()
+    {
+        var userId = Context.User.Id;
+        if (logger.IsEnabled(LogLevel.Information)) logger.LogInformation("Starting manual widget setup for @{Username} ({DiscordUserId})", Context.User.Username, userId);
+
+        var permissionResult = await GetConfigurationPermissionAsync(userId);
+        if (!permissionResult)
+        {
+            await Context.Interaction.SendResponseAsync(InteractionCallback.Message(new InteractionMessageProperties
+            {
+                Flags = MessageFlags.Ephemeral,
+                Content = "Only the Discord application owner or team members can configure this widget."
+            }));
+            return;
+        }
+
+        var usernameInput = new TextInputProperties(ApplicationConfiguration.DiscordComponents.WidgetSetupManualGitHubUsernameId, TextInputStyle.Short)
+        {
+            Placeholder = "Kiruyuto",
+            MinLength = 1,
+            MaxLength = 39,
+            Required = true
+        };
+        var checkbox = new CheckboxProperties(ApplicationConfiguration.DiscordComponents.WidgetSetupExcludeUnknownId)
+        {
+            Default = true
+        };
+
+        var modalProps = new ModalProperties(ApplicationConfiguration.DiscordComponents.WidgetSetupManualModalId, "GitHub Widget Manual Setup")
+        {
+            new LabelProperties("GitHub username", usernameInput) { Description = "Use the GitHub Account handle, not the profile display name" },
+            new LabelProperties("Exclude repositories with unknown language?", checkbox) { Description = "GitHub returns null when a repository language is not detected" }
+        };
+
+        await Context.Interaction.SendResponseAsync(InteractionCallback.Modal(modalProps));
+        if (logger.IsEnabled(LogLevel.Debug)) logger.LogDebug("Opened manual setup modal for Discord user {DiscordUserId}", userId);
+    }
+
+    [SlashCommand(name: "invite", description: "Share the Discord authorization URL for this widget")]
+    public Task InviteAsync()
+    {
+        if (logger.IsEnabled(LogLevel.Debug)) logger.LogDebug("Sending public invite URL to @{Username} ({DiscordUserId})", Context.User.Username, Context.User.Id);
+
+        return Context.Interaction.SendResponseAsync(InteractionCallback.Message(new InteractionMessageProperties
+        {
+            Content = discordOptions.Value.AuthorizeUrl
+        }));
+    }
+
+    private async Task<bool> GetConfigurationPermissionAsync(ulong userId)
+    {
+        var app = await Context.Client.Rest.GetCurrentApplicationAsync();
+
+        if (app.Owner?.Id == userId) return true;
+        if (app.Team is null) return false;
+        if (app.Team.OwnerId == userId) return true;
+
+        foreach (var user in app.Team.Users)
+        {
+            if (user.Id == userId && user.Role is TeamRole.Developer or TeamRole.Admin)
+                return true;
+        }
+
+        if (logger.IsEnabled(LogLevel.Warning)) logger.LogWarning("Discord user {DiscordUserId} is not allowed to configure this widget", userId);
+        return false;
     }
 }

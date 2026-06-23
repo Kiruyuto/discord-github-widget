@@ -3,6 +3,8 @@
 # ====================
 
 # Localsettings files
+.env
+!.env.example
 local.settings.json
 !local.settings.json.example
 
