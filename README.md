@@ -29,7 +29,7 @@
 
 ## What It Does
 
-Fetches some publicly accessible GitHub profile stats into a Discord profile widget
+Fetches public GitHub profile stats and displays them in a Discord profile widget.
 
 This particular widget shows:
 
@@ -42,10 +42,10 @@ This particular widget shows:
 
 ## Add It to Your Profile
 
-Discord recently changed how widgets work, so you must either own the application or be part of the team that owns it before you can add the widget to your profile.
+Discord changed how widgets work recently, so you must either own the application or be part of the team that owns it before you can add the widget to your profile.
 
 That means you cannot simply authorize someone else's hosted application and use it directly.  
-**The good news: you can follow [Setup.md](./Docs/Setup.md) to create your own Discord application.**
+**The good news is you can follow [Setup.md](./Docs/Setup.md) to create your own Discord application.**
 
 For more context, see the Discord Previews message below:
 [Discord Previews announcement](https://discord.com/channels/603970300668805120/983619277531779082/1511885826408189952)
@@ -65,8 +65,8 @@ dotnet test --no-restore --no-build
 Run the same formatting check used by CI:
 
 ```bash
-# For formatting:
+# Check formatting:
 dotnet format --no-restore --verbosity diagnostic --severity info
-# For verification:
+# Verify formatting:
 dotnet format --no-restore --verbosity diagnostic --severity info --verify-no-changes
 ```
