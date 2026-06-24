@@ -1,7 +1,6 @@
 {
   "$schema": "https://raw.githubusercontent.com/googleapis/release-please/main/schemas/config.json",
-  "pull-request-title-pattern": "chore(${component}): Release ${version}",
-  "group-pull-request-title-pattern": "chore(ci): Release ${version}",
+  "group-pull-request-title-pattern": "chore: Release v${version}",
   "separate-pull-requests": false,
   "prerelease": false,
   "draft-pull-request": true,
