@@ -1,4 +1,4 @@
-name: "github-discord-widget-dev"
+name: "github-discord-widget"
 
 networks:
   db-network:
@@ -10,15 +10,14 @@ volumes:
 services:
   bot:
     container_name: github-widget-bot
-    build:
-      context: .
-      dockerfile: GitHubWidgetBot/Dockerfile
+    image: ghcr.io/kiruyuto/discord-github-widget:latest
+    pull_policy: always
     restart: unless-stopped
     env_file:
       - ${BOT_ENV_FILE:-.env}
     environment:
-      DOTNET_ENVIRONMENT: ${DOTNET_ENVIRONMENT:-Development}
-      Database__ConnectionString: "Host=postgres;Port=5432;Database=${POSTGRES_DB:-wdgt-db};Username=${POSTGRES_USER:-postgres};Password=${POSTGRES_PASSWORD:-postgres}"
+      DOTNET_ENVIRONMENT: Production
+      Database__ConnectionString: "Host=postgres;Port=5432;Database=${POSTGRES_DB:?POSTGRES_DB is required};Username=${POSTGRES_USER:?POSTGRES_USER is required};Password=${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required}"
     depends_on:
       postgres:
         condition: service_healthy
@@ -29,12 +28,11 @@ services:
     container_name: postgres-db
     image: postgres:18.3-trixie
     restart: unless-stopped
+    shm_size: 256mb
     environment:
-      POSTGRES_DB: ${POSTGRES_DB:-wdgt-db}
-      POSTGRES_USER: ${POSTGRES_USER:-postgres}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
-    ports:
-      - "5432:5432"
+      POSTGRES_DB: ${POSTGRES_DB:?POSTGRES_DB is required}
+      POSTGRES_USER: ${POSTGRES_USER:?POSTGRES_USER is required}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required}
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
       start_period: 5s

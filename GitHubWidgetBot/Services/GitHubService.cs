@@ -14,6 +14,8 @@ internal sealed class GitHubService(ILogger<GitHubService> logger, HttpClient ht
     private readonly string _token = options.Value.Token;
     private readonly string _oauthClientId = options.Value.OAuthClientId;
 
+    public bool IsOAuthDeviceFlowConfigured => !string.IsNullOrWhiteSpace(_oauthClientId);
+
     /// <param name="username">Sanitized, GitHub-friendly username</param>
     /// <param name="excludeUnknown">Whether exclude repositories with <code>"TopLanguage": null</code> from calculation</param>
     /// <param name="token">GitHub OAuth token to use instead of the configured bot token</param>
@@ -57,6 +59,12 @@ internal sealed class GitHubService(ILogger<GitHubService> logger, HttpClient ht
     [SuppressMessage("Minor Code Smell", "S1075:URIs should not be hardcoded")]
     public async Task<GitHubDeviceAuthorization?> StartDeviceAuthorizationAsync()
     {
+        if (!IsOAuthDeviceFlowConfigured)
+        {
+            if (logger.IsEnabled(LogLevel.Warning)) logger.LogWarning("Cannot start GitHub device authorization because GitHub:OAuthClientId is not configured");
+            return null;
+        }
+
         try
         {
             using var request = CreateDeviceFlowRequest(

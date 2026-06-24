@@ -14,7 +14,9 @@ internal static class ApplicationConfiguration
     internal static class DiscordComponents
     {
         public const string WidgetSetupModalId = "setup-modal";
+        public const string WidgetSetupManualModalId = "setup-manual-modal";
         public const string WidgetSetupVerifyButtonId = "verify-button";
         public const string WidgetSetupExcludeUnknownId = "github-exclude-unknown";
+        public const string WidgetSetupManualGitHubUsernameId = "github-username";
     }
 }

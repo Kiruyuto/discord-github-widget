@@ -4,6 +4,7 @@
     <attachedFolders>
       <Path>.github</Path>
       <Path>Assets</Path>
+      <Path>Docs</Path>
     </attachedFolders>
     <explicitIncludes />
     <explicitExcludes />

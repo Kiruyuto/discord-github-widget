@@ -19,7 +19,7 @@ namespace GitHubWidgetBot;
 internal static class Program
 {
     [SuppressMessage("Style", "VSTHRD200:Use \"Async\" suffix for async methods")]
-    private static Task Main(string[] args)
+    private static async Task Main(string[] args)
     {
         var builder = Host.CreateApplicationBuilder(args);
 
@@ -29,7 +29,15 @@ internal static class Program
 
         var host = RegisterCommandModules(builder.Build());
 
-        return host.RunAsync();
+        await MigrateDatabaseAsync(host).ConfigureAwait(false);
+        await host.RunAsync().ConfigureAwait(false);
+    }
+
+    private static async Task MigrateDatabaseAsync(IHost host)
+    {
+        await using var scope = host.Services.CreateAsyncScope();
+        var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+        await dbContext.Database.MigrateAsync().ConfigureAwait(false);
     }
 
     private static void AddNetCord(IServiceCollection serviceCollection)
@@ -101,10 +109,10 @@ internal static class Program
 
     private static IHost RegisterCommandModules(IHost host)
     {
-        host.AddApplicationCommandModule<SetupModule>();
+        host.AddApplicationCommandModule<ApplicationCommandsModule>();
 
         host.AddComponentInteractionModule<ButtonInteractionContext, ButtonModule>();
-        host.AddComponentInteractionModule<ModalInteractionContext, ModalModule>();
+        host.AddComponentInteractionModule<ModalInteractionContext, ModalsModule>();
 
         return host;
     }

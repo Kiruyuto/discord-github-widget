@@ -9,7 +9,7 @@ using NetCord.Services.ComponentInteractions;
 
 namespace GitHubWidgetBot.Modules;
 
-internal class ModalModule(ILogger<ModalModule> logger, GitHubService gitHubService, ApplicationDbContext dbContext) : ComponentInteractionModule<ModalInteractionContext>
+internal class ModalsModule(ILogger<ModalsModule> logger, GitHubService gitHubService, ApplicationDbContext dbContext) : ComponentInteractionModule<ModalInteractionContext>
 {
     [ComponentInteraction(ApplicationConfiguration.DiscordComponents.WidgetSetupModalId)]
     public async Task ProcessModalAsync()
@@ -22,15 +22,12 @@ internal class ModalModule(ILogger<ModalModule> logger, GitHubService gitHubServ
         // TODO: Create custom ResultHandler
 
         var labelComponents = Context.Components.OfType<Label>().Select(static label => label.Component).ToArray();
-        var checkbox = labelComponents.OfType<Checkbox>().FirstOrDefault();
-        if (checkbox is null)
+        if (!TryGetExcludeUnknown(labelComponents, out var excludeUnknown))
         {
             if (logger.IsEnabled(LogLevel.Warning)) logger.LogWarning("Setup modal interaction from Discord user {DiscordUserId} did not include the exclude-unknown checkbox", userId);
             await Context.Interaction.ModifyResponseAsync(x => { x.Content = "Invalid setup form. Please run `/setup` again."; });
             return;
         }
-
-        var excludeUnknown = checkbox.Checked;
 
         var ghOauthSetupData = await dbContext.SetupSessions.FirstOrDefaultAsync(x => x.DiscordUserId == userId);
         if (ghOauthSetupData is null)
@@ -80,14 +77,55 @@ internal class ModalModule(ILogger<ModalModule> logger, GitHubService gitHubServ
             );
         }
 
-        var widget = await gitHubService.FetchUserDataAsync(authorization.Login, excludeUnknown, authorization.AccessToken);
-        if (!widget.HasValue)
+        if (await ConfigureWidgetAsync(userId: userId, gitHubUsername: authorization.Login, excludeUnknown: excludeUnknown, token: authorization.AccessToken))
         {
-            if (logger.IsEnabled(LogLevel.Warning)) logger.LogWarning("Failed to build widget data for Discord user {DiscordUserId} and GitHub user @{GitHubUsername}", userId, authorization.Login);
-            await Context.Interaction.ModifyResponseAsync(x => { x.Content = "Failed to fetch user data from GitHub >:("; });
+            dbContext.SetupSessions.Remove(ghOauthSetupData);
+            var changed = await dbContext.SaveChangesAsync();
+            if (logger.IsEnabled(LogLevel.Information)) logger.LogInformation("Removed setup session for Discord user {DiscordUserId}; database changes: {ChangedCount}", userId, changed);
+        }
+    }
+
+    [ComponentInteraction(ApplicationConfiguration.DiscordComponents.WidgetSetupManualModalId)]
+    public async Task ProcessManualModalAsync()
+    {
+        var userId = Context.User.Id;
+        if (logger.IsEnabled(LogLevel.Debug)) logger.LogDebug("Processing manual setup modal interaction from @{Username} ({DiscordUserId})", Context.User.Username, userId);
+
+        await Context.Interaction.SendResponseAsync(InteractionCallback.DeferredMessage(MessageFlags.Ephemeral));
+
+        var labelComponents = Context.Components.OfType<Label>().Select(static label => label.Component).ToArray();
+        if (!TryGetExcludeUnknown(labelComponents, out var excludeUnknown))
+        {
+            if (logger.IsEnabled(LogLevel.Warning)) logger.LogWarning("Manual setup modal interaction from Discord user {DiscordUserId} did not include the exclude-unknown checkbox", userId);
+            await Context.Interaction.ModifyResponseAsync(x => { x.Content = "Invalid setup form. Please run `/setup-manual` again."; });
             return;
         }
 
+        var usernameInput = labelComponents.OfType<TextInput>().FirstOrDefault(x => x.CustomId == ApplicationConfiguration.DiscordComponents.WidgetSetupManualGitHubUsernameId);
+        var username = usernameInput?.Value.Trim();
+        if (string.IsNullOrWhiteSpace(username))
+        {
+            if (logger.IsEnabled(LogLevel.Warning)) logger.LogWarning("Manual setup modal interaction from Discord user {DiscordUserId} did not include a GitHub username", userId);
+            await Context.Interaction.ModifyResponseAsync(x => { x.Content = "Invalid setup form. Please enter a GitHub username."; });
+            return;
+        }
+
+        await ConfigureWidgetAsync(userId: userId, gitHubUsername: username, excludeUnknown: excludeUnknown, token: null);
+    }
+
+    private async Task<bool> ConfigureWidgetAsync(ulong userId, string gitHubUsername, bool excludeUnknown, string? token)
+    {
+        var widget = await gitHubService.FetchUserDataAsync(gitHubUsername, excludeUnknown, token);
+        if (!widget.HasValue)
+        {
+            if (logger.IsEnabled(LogLevel.Warning)) logger.LogWarning("Failed to build widget data for Discord user {DiscordUserId} and GitHub user @{GitHubUsername}", userId, gitHubUsername);
+            await Context.Interaction.ModifyResponseAsync(x => { x.Content = "Failed to fetch user data from GitHub >:("; });
+            return false;
+        }
+
+        // GitHub username lookup is case-insensitive, but the API returns the canonical login casing.
+        // Normalize here instead of adding weird CKs, changing type to citext, or another workaround.
+        var normalizedGitHubUsername = widget.Value.Data.Username;
         using var content = widget.Value.ToJsonContent();
         try
         {
@@ -100,9 +138,9 @@ internal class ModalModule(ILogger<ModalModule> logger, GitHubService gitHubServ
         }
         catch (Exception ex)
         {
-            if (logger.IsEnabled(LogLevel.Error)) logger.LogError(ex, "Failed to update Discord widget profile for Discord user {DiscordUserId} and GitHub user @{GitHubUsername}", userId, authorization.Login);
+            if (logger.IsEnabled(LogLevel.Error)) logger.LogError(ex, "Failed to update Discord widget profile for Discord user {DiscordUserId} and GitHub user @{GitHubUsername}", userId, normalizedGitHubUsername);
             await Context.Interaction.ModifyResponseAsync(x => { x.Content = "Failed to update your Discord widget profile."; });
-            return;
+            return false;
         }
 
         await Context.Interaction.ModifyResponseAsync(x =>
@@ -113,14 +151,13 @@ internal class ModalModule(ILogger<ModalModule> logger, GitHubService gitHubServ
         });
 
         var utcNow = DateTimeOffset.UtcNow;
-        dbContext.SetupSessions.Remove(ghOauthSetupData);
-        var refreshTarget = await dbContext.RefreshTargets.FirstOrDefaultAsync(x => x.DiscordUserId == userId && x.GitHubUsername == authorization.Login);
+        var refreshTarget = await dbContext.RefreshTargets.FirstOrDefaultAsync(x => x.DiscordUserId == userId && x.GitHubUsername == normalizedGitHubUsername);
         if (refreshTarget == null)
         {
             dbContext.RefreshTargets.Add(new RefreshTarget
             {
                 DiscordUserId = userId,
-                GitHubUsername = authorization.Login,
+                GitHubUsername = normalizedGitHubUsername,
                 LastUpdateUtc = utcNow,
                 LastAttemptUtc = utcNow,
                 FailureCount = 0
@@ -139,8 +176,23 @@ internal class ModalModule(ILogger<ModalModule> logger, GitHubService gitHubServ
         {
             logger.LogInformation(
                 "Completed widget setup for Discord user {DiscordUserId} as @{GitHubUsername}. Exclude unknown languages: {ExcludeUnknown}; database changes: {ChangedCount}",
-                userId, authorization.Login, excludeUnknown, changed
+                userId, normalizedGitHubUsername, excludeUnknown, changed
             );
         }
+
+        return true;
+    }
+
+    private static bool TryGetExcludeUnknown(ILabelComponent[] labelComponents, out bool excludeUnknown)
+    {
+        var checkbox = labelComponents.OfType<Checkbox>().FirstOrDefault(x => x.CustomId == ApplicationConfiguration.DiscordComponents.WidgetSetupExcludeUnknownId);
+        if (checkbox is null)
+        {
+            excludeUnknown = false;
+            return false;
+        }
+
+        excludeUnknown = checkbox.Checked;
+        return true;
     }
 }
