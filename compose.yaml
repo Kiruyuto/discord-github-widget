@@ -13,12 +13,16 @@ services:
     build:
       context: .
       dockerfile: GitHubWidgetBot/Dockerfile
+      args:
+        BUILD_CONFIGURATION: Debug
     restart: unless-stopped
-    env_file:
-      - ${BOT_ENV_FILE:-.env}
     environment:
       DOTNET_ENVIRONMENT: ${DOTNET_ENVIRONMENT:-Development}
-      Database__ConnectionString: "Host=postgres;Port=5432;Database=${POSTGRES_DB:-wdgt-db};Username=${POSTGRES_USER:-postgres};Password=${POSTGRES_PASSWORD:-postgres}"
+      Database__ConnectionString: "Host=postgres;Port=5432;Database=wdgt-db;Username=postgres;Password=postgres"
+      Discord__Token: ${Discord__Token:?Discord__Token is required}
+      Discord__AuthorizeUrl: ${Discord__AuthorizeUrl:?Discord__AuthorizeUrl is required}
+      GitHub__Token: ${GitHub__Token:?GitHub__Token is required}
+      GitHub__OAuthClientId: ${GitHub__OAuthClientId:-}
     depends_on:
       postgres:
         condition: service_healthy
@@ -30,9 +34,9 @@ services:
     image: postgres:18.4-trixie
     restart: unless-stopped
     environment:
-      POSTGRES_DB: ${POSTGRES_DB:-wdgt-db}
-      POSTGRES_USER: ${POSTGRES_USER:-postgres}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      POSTGRES_DB: wdgt-db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
     ports:
       - "5432:5432"
     healthcheck:

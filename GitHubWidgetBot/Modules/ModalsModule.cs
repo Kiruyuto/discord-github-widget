@@ -101,7 +101,7 @@ internal class ModalsModule(ILogger<ModalsModule> logger, GitHubService gitHubSe
             return;
         }
 
-        var usernameInput = labelComponents.OfType<TextInput>().FirstOrDefault(x => x.CustomId == ApplicationConfiguration.DiscordComponents.WidgetSetupManualGitHubUsernameId);
+        var usernameInput = labelComponents.OfType<TextInput>().FirstOrDefault(textInput => textInput.CustomId == ApplicationConfiguration.DiscordComponents.WidgetSetupManualGitHubUsernameId);
         var username = usernameInput?.Value.Trim();
         if (string.IsNullOrWhiteSpace(username))
         {
@@ -151,13 +151,14 @@ internal class ModalsModule(ILogger<ModalsModule> logger, GitHubService gitHubSe
         });
 
         var utcNow = DateTimeOffset.UtcNow;
-        var refreshTarget = await dbContext.RefreshTargets.FirstOrDefaultAsync(x => x.DiscordUserId == userId && x.GitHubUsername == normalizedGitHubUsername);
+        var refreshTarget = await dbContext.RefreshTargets.FirstOrDefaultAsync(target => target.DiscordUserId == userId);
         if (refreshTarget == null)
         {
             dbContext.RefreshTargets.Add(new RefreshTarget
             {
                 DiscordUserId = userId,
                 GitHubUsername = normalizedGitHubUsername,
+                ExcludeUnknown = excludeUnknown,
                 LastUpdateUtc = utcNow,
                 LastAttemptUtc = utcNow,
                 FailureCount = 0
@@ -165,9 +166,9 @@ internal class ModalsModule(ILogger<ModalsModule> logger, GitHubService gitHubSe
         }
         else
         {
-            refreshTarget.LastUpdateUtc = utcNow;
-            refreshTarget.LastAttemptUtc = utcNow;
-            refreshTarget.FailureCount = 0;
+            refreshTarget.GitHubUsername = normalizedGitHubUsername;
+            refreshTarget.ExcludeUnknown = excludeUnknown;
+            refreshTarget.RecordSuccessfulAttempt(utcNow);
             dbContext.RefreshTargets.Update(refreshTarget);
         }
 
