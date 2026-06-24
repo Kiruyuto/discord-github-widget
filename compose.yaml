@@ -31,7 +31,7 @@ services:
 
   postgres:
     container_name: postgres-db
-    image: postgres:18.3-trixie
+    image: postgres:18.4-trixie
     restart: unless-stopped
     environment:
       POSTGRES_DB: wdgt-db
