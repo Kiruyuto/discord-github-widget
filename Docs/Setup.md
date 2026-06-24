@@ -302,6 +302,7 @@ After that, they should be able to run the setup command and add the widget to t
 
 > [!CAUTION]
 > **Only invite people you trust**.
+> 
 > Team members with elevated roles can manage parts of the Discord application, so do not use this as a public access mechanism.
 
 ---
