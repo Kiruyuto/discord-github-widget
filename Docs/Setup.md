@@ -252,12 +252,12 @@ This token is used by the bot for GitHub REST and GraphQL requests when a tempor
 
 There are multiple ways to run the app, but the easiest path is Docker Compose. In the repository root, you can find two compose files:
 
-- [`compose.Prod.yaml`](../compose.Prod.yaml): Pulls the latest image from GitHub registry.
-- [`compose.yaml`](../compose.yaml): Builds the image from local source. Requires you to clone this repository.
+- [`compose.yaml`](../compose.yaml): Local development sandbox. It builds the bot from source and runs PostgreSQL with disposable development credentials.
+- [`compose.Prod.yaml`](../compose.Prod.yaml): Production-oriented compose file. It pulls the latest image from GitHub registry and requires real configuration.
 
 For most users, I recommend `compose.Prod.yaml` because it does not require cloning or building the project locally.
 
-- Download the production compose file, or clone the repository if you want to build from source.
+- For local development, clone the repository and use [`compose.yaml`](../compose.yaml).
 - Create a `.env` file.
   - Either copy the example file:
       ```bash
@@ -265,14 +265,23 @@ For most users, I recommend `compose.Prod.yaml` because it does not require clon
       ```
   - Or copy-paste the [.env.example](../.env.example) content.
 - Open the new `.env` file and fill in the real values.
-- Do not leave the PostgreSQL values empty, especially when using `compose.Prod.yaml`.
-- For simplified setup, leave `GitHub__OAuthClientId` commented out and use `/setup-manual`. For the OAuth setup path, complete [Step #3](#3-create-the-github-oauth-app-optional), uncomment `GitHub__OAuthClientId`, and set it to your GitHub OAuth app client ID.
-- You do not need to set `Database__ConnectionString` in `.env` when using the provided compose files. Compose builds it automatically so the bot connects to the `postgres` service.
-- Start the selected compose file using the command below. If everything is configured correctly, both services should report healthy.
+  - `Discord__Token`, `Discord__AuthorizeUrl`, and `GitHub__Token` are required by `compose.yaml`, so the bot will not start without them.
+  - You do not need to set `Database__ConnectionString` or PostgreSQL values for local development. Compose builds the connection string automatically and uses disposable PostgreSQL credentials.
+- Start the local development stack:
     ```bash
-    # Replace <file_name> with whichever compose file you chose.
-    # Example: docker compose -f ./compose.Prod.yaml up -d
-    docker compose -f <file_name> up -d
+    docker compose up --build
+    ```
+- If you want to use a different env file for local development, pass it explicitly, e.g:
+    ```bash
+    docker compose --env-file ./Production.env up --build
+    ```
+- For production, download [`compose.Prod.yaml`](../compose.Prod.yaml) and create a `.env` file next to it.
+- Do not leave the PostgreSQL values empty when using `compose.Prod.yaml`.
+- For simplified setup, leave `GitHub__OAuthClientId` commented out and use `/setup-manual`. For the OAuth setup path, complete [Step #3](#3-create-the-github-oauth-app-optional), uncomment `GitHub__OAuthClientId`, and set it to your GitHub OAuth app client ID.
+- You do not need to set `Database__ConnectionString` in the production `.env`. Compose builds it automatically so the bot connects to the `postgres` service.
+- Start the production compose file:
+    ```bash
+    docker compose -f ./compose.Prod.yaml up -d
     ```
 - The services will keep running in the background. While they are running, the bot refreshes widget data for you and any other users who set up your widget about every 6 hours.
 - If you want to stop the services, use:

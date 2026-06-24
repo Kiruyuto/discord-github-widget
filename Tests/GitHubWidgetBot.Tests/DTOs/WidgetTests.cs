@@ -1,6 +1,6 @@
 using GitHubWidgetBot.DTOs;
 
-namespace GitHubWidgetBot.Tests;
+namespace GitHubWidgetBot.Tests.DTOs;
 
 internal sealed class WidgetTests
 {

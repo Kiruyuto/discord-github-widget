@@ -1,6 +1,6 @@
 using GitHubWidgetBot.Services;
 
-namespace GitHubWidgetBot.Tests;
+namespace GitHubWidgetBot.Tests.Services;
 
 internal sealed class GitHubOptionsValidatorTests
 {

@@ -13,11 +13,12 @@ internal sealed class RefreshTargetConfiguration : IEntityTypeConfiguration<Refr
         builder.Property(static x => x.Id).UseIdentityByDefaultColumn();
         builder.Property(static x => x.DiscordUserId).IsRequired();
         builder.Property(static x => x.GitHubUsername).IsRequired().HasMaxLength(39); // 39 is the upper bound GitHub constraint
+        builder.Property(static x => x.ExcludeUnknown).IsRequired();
         builder.Property(static x => x.LastUpdateUtc).IsRequired();
         builder.Property(static x => x.LastAttemptUtc).IsRequired();
         builder.Property(static x => x.FailureCount).IsRequired().HasDefaultValue(default(uint));
 
-        builder.HasIndex(static x => new { x.DiscordUserId, x.GitHubUsername }).IsUnique();
-        builder.HasIndex(static x => new { x.LastUpdateUtc });
+        builder.HasIndex(static x => new { x.DiscordUserId }).IsUnique();
+        builder.HasIndex(static x => new { x.LastAttemptUtc });
     }
 }

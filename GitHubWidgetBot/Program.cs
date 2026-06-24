@@ -26,6 +26,7 @@ internal static class Program
         AddNetCord(builder.Services);
         AddGitHub(builder.Services);
         AddDatabase(builder.Services, builder.Configuration, builder.Environment);
+        AddBackgroundServices(builder.Services);
 
         var host = RegisterCommandModules(builder.Build());
 
@@ -105,6 +106,12 @@ internal static class Program
                 options.EnableDetailedErrors();
             }
         });
+    }
+
+    private static void AddBackgroundServices(IServiceCollection serviceCollection)
+    {
+        serviceCollection.AddHostedService<WidgetRefreshHostedService>();
+        serviceCollection.AddHostedService<SetupSessionCleanupHostedService>();
     }
 
     private static IHost RegisterCommandModules(IHost host)
