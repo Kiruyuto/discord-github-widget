@@ -161,13 +161,19 @@ internal class ApplicationCommandsModule(
     }
 
     [SlashCommand(name: "invite", description: "Share the Discord authorization URL for this widget")]
-    public Task InviteAsync()
+    public Task InviteAsync(User user)
     {
         if (logger.IsEnabled(LogLevel.Debug)) logger.LogDebug("Sending public invite URL to @{Username} ({DiscordUserId})", Context.User.Username, Context.User.Id);
 
         return Context.Interaction.SendResponseAsync(InteractionCallback.Message(new InteractionMessageProperties
         {
-            Content = discordOptions.Value.AuthorizeUrl
+            Flags = MessageFlags.SuppressEmbeds,
+            AllowedMentions = AllowedMentionsProperties.All,
+            Content = $"{user}\n\n" +
+                      "To use this widget:\n" +
+                      $"1. Authorize the Discord app with [this link]({discordOptions.Value.AuthorizeUrl}).\n" +
+                      "2. Ask the app owner to add you to the Discord Developer Team that owns this app. " +
+                      "They can do that in the [Developer Portal](https://discord.com/developers/teams)."
         }));
     }
 
