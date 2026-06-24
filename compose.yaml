@@ -12,7 +12,7 @@ services:
     container_name: github-widget-bot
     build:
       context: .
-      dockerfile: GitHubWidgetBot/Dockerfile
+      dockerfile: Source/GitHubWidgetBot/Dockerfile
       args:
         BUILD_CONFIGURATION: Debug
     restart: unless-stopped

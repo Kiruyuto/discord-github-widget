@@ -7,10 +7,10 @@ ARG BUILD_CONFIGURATION=Release
 WORKDIR /src
 COPY ["Directory.Packages.props", "./"]
 COPY ["Directory.Build.props", "./"]
-COPY ["GitHubWidgetBot/GitHubWidgetBot.csproj", "GitHubWidgetBot/"]
-RUN dotnet restore "GitHubWidgetBot/GitHubWidgetBot.csproj"
+COPY ["Source/GitHubWidgetBot/GitHubWidgetBot.csproj", "Source/GitHubWidgetBot/"]
+RUN dotnet restore "Source/GitHubWidgetBot/GitHubWidgetBot.csproj"
 COPY . .
-WORKDIR "/src/GitHubWidgetBot"
+WORKDIR "/src/Source/GitHubWidgetBot"
 RUN dotnet build "./GitHubWidgetBot.csproj" -c $BUILD_CONFIGURATION -o /app/build
 
 FROM build AS publish
