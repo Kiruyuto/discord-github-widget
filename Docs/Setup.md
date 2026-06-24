@@ -180,8 +180,8 @@ This part will walk you through widget creation in Discord Dev Portal
 | Stat #2       | `Total stars`   | `user_stars_total`   | `lucide-star`                  | [LINK](../Assets/lucide-star.png)                  |
 | Stat #3       | `Public repos`  | `user_public_repos`  | `lucide-book_marked`           | [LINK](../Assets/lucide-book_marked.png)           |
 | Stat #4       | `Top language`  | `user_top_language`  | `lucide-file_code2`            | [LINK](../Assets/lucide-file_code2.png)            |
-| Stat #5       | `Followers`     | `user_followers`     | `lucide_users`                 | [LINK](../Assets/lucide-users.png)                 |
-| Stat #6       | `Following`     | `user_following`     | `lucide_user_star`             | [LINK](../Assets/lucide-star.png)                  |
+| Stat #5       | `Followers`     | `user_followers`     | `lucide-users`                 | [LINK](../Assets/lucide-users.png)                 |
+| Stat #6       | `Following`     | `user_following`     | `lucide-star`                  | [LINK](../Assets/lucide-star.png)                  |
 
 ### Add Widget Preview
 - Design: `Hero`
