@@ -18,8 +18,6 @@ internal class ModalsModule(ILogger<ModalsModule> logger, GitHubService gitHubSe
         if (logger.IsEnabled(LogLevel.Debug)) logger.LogDebug("Processing setup modal interaction from @{Username} ({DiscordUserId})", Context.User.Username, userId);
 
         await Context.Interaction.SendResponseAsync(InteractionCallback.DeferredMessage(MessageFlags.Ephemeral));
-        // TODO: If commands fails anywhere below it will throw and not return any information to the user due to deferral
-        // TODO: Create custom ResultHandler
 
         var labelComponents = Context.Components.OfType<Label>().Select(static label => label.Component).ToArray();
         if (!TryGetExcludeUnknown(labelComponents, out var excludeUnknown))
