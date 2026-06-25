@@ -12,6 +12,7 @@ using NetCord.Gateway;
 using NetCord.Hosting.Gateway;
 using NetCord.Hosting.Services.ApplicationCommands;
 using NetCord.Hosting.Services.ComponentInteractions;
+using NetCord.Services.ApplicationCommands;
 using NetCord.Services.ComponentInteractions;
 
 namespace GitHubWidgetBot;
@@ -72,9 +73,10 @@ internal static class Program
                 options.DefaultContexts = [InteractionContextType.BotDMChannel, InteractionContextType.DMChannel];
                 options.DefaultIntegrationTypes = [ApplicationIntegrationType.UserInstall];
                 options.AutoRegisterCommands = true;
+                options.ResultHandler = new ResultHandlers.ApplicationCommandCommandResultHandler<ApplicationCommandContext>();
             })
-            .AddComponentInteractions<ModalInteraction, ModalInteractionContext>()
-            .AddComponentInteractions<ButtonInteraction, ButtonInteractionContext>();
+            .AddComponentInteractions<ModalInteraction, ModalInteractionContext>(options => options.ResultHandler = new ResultHandlers.ComponentInteractionResultHandler<ModalInteractionContext>())
+            .AddComponentInteractions<ButtonInteraction, ButtonInteractionContext>(options => options.ResultHandler = new ResultHandlers.ComponentInteractionResultHandler<ButtonInteractionContext>());
     }
 
     [SuppressMessage("Minor Code Smell", "S1075:URIs should not be hardcoded")]

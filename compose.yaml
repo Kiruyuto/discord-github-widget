@@ -18,18 +18,18 @@ services:
     restart: unless-stopped
     environment:
       DOTNET_ENVIRONMENT: ${DOTNET_ENVIRONMENT:-Development}
-      Database__ConnectionString: "Host=postgres;Port=5432;Database=wdgt-db;Username=postgres;Password=postgres"
+      Database__ConnectionString: "Host=db;Port=5432;Database=wdgt-db;Username=postgres;Password=postgres"
       Discord__Token: ${Discord__Token:?Discord__Token is required}
       Discord__AuthorizeUrl: ${Discord__AuthorizeUrl:?Discord__AuthorizeUrl is required}
       GitHub__Token: ${GitHub__Token:?GitHub__Token is required}
       GitHub__OAuthClientId: ${GitHub__OAuthClientId:-}
     depends_on:
-      postgres:
+      db:
         condition: service_healthy
     networks:
       - db-network
 
-  postgres:
+  db:
     container_name: postgres-db
     image: postgres:18.4-trixie
     restart: unless-stopped

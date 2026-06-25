@@ -17,14 +17,14 @@ services:
       - ${BOT_ENV_FILE:-.env}
     environment:
       DOTNET_ENVIRONMENT: Production
-      Database__ConnectionString: "Host=postgres;Port=5432;Database=${POSTGRES_DB:?POSTGRES_DB is required};Username=${POSTGRES_USER:?POSTGRES_USER is required};Password=${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required}"
+      Database__ConnectionString: "Host=db;Port=5432;Database=${POSTGRES_DB:?POSTGRES_DB is required};Username=${POSTGRES_USER:?POSTGRES_USER is required};Password=${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required}"
     depends_on:
-      postgres:
+      db:
         condition: service_healthy
     networks:
       - db-network
 
-  postgres:
+  db:
     container_name: postgres-db
     image: postgres:18.4-trixie
     restart: unless-stopped
