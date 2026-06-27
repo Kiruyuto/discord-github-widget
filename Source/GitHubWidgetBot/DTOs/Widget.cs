@@ -9,7 +9,6 @@ namespace GitHubWidgetBot.DTOs;
 internal readonly record struct Widget(Widget.DataPayload Data)
 {
     internal readonly record struct DataPayload(string Username, DynamicEntry[] Dynamic);
-
     internal readonly record struct DynamicEntry(uint Type, string Name, object? Value);
 
     private sealed record DynamicImage(string Url);
@@ -46,18 +45,6 @@ internal readonly record struct Widget(Widget.DataPayload Data)
         };
 
         return new Widget(new DataPayload(username, dynamic));
-    }
-
-    public string ToJson()
-    {
-        var buffer = new ArrayBufferWriter<byte>(512);
-
-        using (var writer = new Utf8JsonWriter(buffer))
-        {
-            WriteJson(writer);
-        }
-
-        return Encoding.UTF8.GetString(buffer.WrittenSpan);
     }
 
     public ReadOnlyMemoryContent ToJsonContent()

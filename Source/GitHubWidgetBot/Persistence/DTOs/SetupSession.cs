@@ -1,6 +1,6 @@
 namespace GitHubWidgetBot.Persistence.DTOs;
 
-internal class SetupSession : DbEntity
+internal sealed class SetupSession : DbEntity
 {
     public DateTimeOffset CreatedAtUtc { get; private init; } = DateTimeOffset.UtcNow;
 

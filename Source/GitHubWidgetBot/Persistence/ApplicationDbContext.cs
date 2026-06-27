@@ -1,3 +1,4 @@
+using GitHubWidgetBot.Persistence.Configurations;
 using GitHubWidgetBot.Persistence.DTOs;
 using Microsoft.EntityFrameworkCore;
 
@@ -10,7 +11,8 @@ internal sealed class ApplicationDbContext(DbContextOptions<ApplicationDbContext
         base.OnModelCreating(modelBuilder);
 
         modelBuilder.HasDefaultSchema(ApplicationConfiguration.Database.SchemaName);
-        modelBuilder.ApplyConfigurationsFromAssembly(typeof(ApplicationDbContext).Assembly);
+        modelBuilder.ApplyConfiguration(new RefreshTargetConfiguration());
+        modelBuilder.ApplyConfiguration(new SetupSessionConfiguration());
     }
 
     public DbSet<SetupSession> SetupSessions => Set<SetupSession>();

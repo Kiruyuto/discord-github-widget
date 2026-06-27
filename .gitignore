@@ -24,6 +24,7 @@ appsettings.*.json
 [Dd]ebugPublic/
 [Rr]elease/
 [Rr]eleases/
+BenchmarkDotNet.Artifacts/
 x64/
 x86/
 bld/

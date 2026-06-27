@@ -10,7 +10,7 @@ using NetCord.Services.ApplicationCommands;
 
 namespace GitHubWidgetBot.Modules;
 
-internal class ApplicationCommandsModule(
+internal sealed class ApplicationCommandsModule(
     ILogger<ApplicationCommandsModule> logger,
     GitHubService gitHubService,
     ApplicationDbContext dbContext,
