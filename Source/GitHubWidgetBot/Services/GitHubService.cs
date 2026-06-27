@@ -1,6 +1,7 @@
 using System.Buffers;
 using System.Net;
 using System.Net.Http.Headers;
+using System.Runtime.InteropServices;
 using System.Text.Json;
 using GitHubWidgetBot.DTOs;
 using GitHubWidgetBot.DTOs.GitHub;
@@ -11,6 +12,8 @@ namespace GitHubWidgetBot.Services;
 
 internal sealed class GitHubService(ILogger<GitHubService> logger, HttpClient httpClient, IOptions<GitHubOptions> options)
 {
+    private const string UnknownLanguage = "Unknown";
+
     private readonly string _token = options.Value.Token;
     private readonly string _oauthClientId = options.Value.OAuthClientId;
 
@@ -247,7 +250,7 @@ internal sealed class GitHubService(ILogger<GitHubService> logger, HttpClient ht
             using var request = CreateRequest(HttpMethod.Post, "graphql", token);
             var buffer = new ArrayBufferWriter<byte>(256 + username.Length);
 
-            await using (var writer = new Utf8JsonWriter(buffer))
+            using (var writer = new Utf8JsonWriter(buffer))
             {
                 writer.WriteStartObject();
                 writer.WriteString("query"u8, "query($login: String!) { user(login: $login) { contributionsCollection { contributionCalendar { totalContributions } } } }"u8);
@@ -258,7 +261,7 @@ internal sealed class GitHubService(ILogger<GitHubService> logger, HttpClient ht
                 writer.WriteEndObject();
             }
 
-            request.Content = new ByteArrayContent(buffer.WrittenSpan.ToArray())
+            request.Content = new ReadOnlyMemoryContent(buffer.WrittenMemory)
             {
                 Headers = { ContentType = new MediaTypeHeaderValue("application/json") }
             };
@@ -394,8 +397,6 @@ internal sealed class GitHubService(ILogger<GitHubService> logger, HttpClient ht
 
     private async Task<GitHubReposData> FetchReposDataAsync(string username, bool excludeUnknown, string? token)
     {
-        const string UnknownLanguage = "Unknown";
-
         if (logger.IsEnabled(LogLevel.Debug)) logger.LogDebug("Starting to fetch repos data for @{Username}", username);
         try
         {
@@ -413,35 +414,8 @@ internal sealed class GitHubService(ILogger<GitHubService> logger, HttpClient ht
                     return new GitHubReposData(0, UnknownLanguage);
                 }
 
-                var bytes = await response.Content.ReadAsByteArrayAsync().ConfigureAwait(false);
-                var reader = new Utf8JsonReader(bytes);
-
-                while (reader.Read())
-                {
-                    if (reader.TokenType != JsonTokenType.PropertyName) continue;
-
-                    if (reader.ValueTextEquals("stargazers_count"u8))
-                    {
-                        if (reader.Read() && reader.TokenType == JsonTokenType.Number && reader.TryGetUInt32(out var stars))
-                        {
-                            starsTotal += stars;
-                        }
-
-                        continue;
-                    }
-
-                    if (reader.ValueTextEquals("language"u8))
-                    {
-                        string? language = null;
-
-                        if (reader.Read() && reader.TokenType == JsonTokenType.String)
-                            language = reader.GetString();
-
-                        var key = string.IsNullOrWhiteSpace(language) ? UnknownLanguage : language;
-                        languageCounts.TryGetValue(key, out var count);
-                        languageCounts[key] = count + 1;
-                    }
-                }
+                await using var stream = await response.Content.ReadAsStreamAsync().ConfigureAwait(false);
+                starsTotal += await ReadReposPageAsync(stream, languageCounts).ConfigureAwait(false);
 
                 if (!response.Headers.TryGetValues("Link", out var headerValues)) break;
 
@@ -495,6 +469,81 @@ internal sealed class GitHubService(ILogger<GitHubService> logger, HttpClient ht
         {
             if (logger.IsEnabled(LogLevel.Error)) logger.LogError(ex, "Failed to fetch repos data for @{Username}", username);
             return new GitHubReposData(0, UnknownLanguage);
+        }
+    }
+
+    private static async Task<uint> ReadReposPageAsync(Stream stream, Dictionary<string, uint> languageCounts)
+    {
+        var buffer = ArrayPool<byte>.Shared.Rent(minimumLength: 32 * 1024);
+        var state = new JsonReaderState();
+        var pendingProperty = 0; // 0 none, 1 stars, 2 language
+        var bytesInBuffer = 0;
+        var isFinalBlock = false;
+        uint starsForPage = 0;
+
+        try
+        {
+            while (!isFinalBlock)
+            {
+                var bytesRead = await stream.ReadAsync(buffer.AsMemory(start: bytesInBuffer, length: buffer.Length - bytesInBuffer)).ConfigureAwait(false);
+                isFinalBlock = bytesRead == 0;
+
+                var bytesToParse = bytesInBuffer + bytesRead;
+                var reader = new Utf8JsonReader(buffer.AsSpan(start: 0, length: bytesToParse), isFinalBlock, state);
+                while (reader.Read())
+                {
+                    if (reader.TokenType == JsonTokenType.PropertyName)
+                    {
+                        if (reader.ValueTextEquals("stargazers_count"u8))
+                        {
+                            pendingProperty = 1;
+                            continue;
+                        }
+
+                        if (reader.ValueTextEquals("language"u8))
+                        {
+                            pendingProperty = 2;
+                            continue;
+                        }
+                    }
+
+                    if (pendingProperty == 1)
+                    {
+                        if (reader.TokenType == JsonTokenType.Number && reader.TryGetUInt32(out var stars))
+                            starsForPage += stars;
+
+                        pendingProperty = 0;
+                        continue;
+                    }
+
+                    if (pendingProperty == 2)
+                    {
+                        var language = reader.TokenType == JsonTokenType.String ? reader.GetString() : null;
+                        var key = string.IsNullOrWhiteSpace(language) ? UnknownLanguage : language;
+                        ref var count = ref CollectionsMarshal.GetValueRefOrAddDefault(languageCounts, key, out _);
+                        count++;
+                        pendingProperty = 0;
+                    }
+                }
+
+                state = reader.CurrentState;
+                var bytesConsumed = (int)reader.BytesConsumed;
+                var bytesRemaining = bytesToParse - bytesConsumed;
+
+                if (bytesRemaining == buffer.Length)
+                    throw new JsonException("A single GitHub repositories JSON token exceeded the parser buffer size.");
+
+                if (bytesRemaining > 0)
+                    buffer.AsSpan(bytesConsumed, bytesRemaining).CopyTo(buffer);
+
+                bytesInBuffer = bytesRemaining;
+            }
+
+            return starsForPage;
+        }
+        finally
+        {
+            ArrayPool<byte>.Shared.Return(buffer);
         }
     }
 

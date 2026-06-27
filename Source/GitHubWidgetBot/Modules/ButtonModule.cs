@@ -4,7 +4,7 @@ using NetCord.Services.ComponentInteractions;
 
 namespace GitHubWidgetBot.Modules;
 
-internal class ButtonModule(ILogger<ButtonModule> logger) : ComponentInteractionModule<ButtonInteractionContext>
+internal sealed class ButtonModule(ILogger<ButtonModule> logger) : ComponentInteractionModule<ButtonInteractionContext>
 {
     [ComponentInteraction(ApplicationConfiguration.DiscordComponents.WidgetSetupVerifyButtonId)]
     public async Task ProcessModalAsync()

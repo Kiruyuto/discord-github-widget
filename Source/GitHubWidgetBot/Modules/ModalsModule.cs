@@ -9,7 +9,7 @@ using NetCord.Services.ComponentInteractions;
 
 namespace GitHubWidgetBot.Modules;
 
-internal class ModalsModule(ILogger<ModalsModule> logger, GitHubService gitHubService, ApplicationDbContext dbContext) : ComponentInteractionModule<ModalInteractionContext>
+internal sealed class ModalsModule(ILogger<ModalsModule> logger, GitHubService gitHubService, ApplicationDbContext dbContext) : ComponentInteractionModule<ModalInteractionContext>
 {
     [ComponentInteraction(ApplicationConfiguration.DiscordComponents.WidgetSetupModalId)]
     public async Task ProcessModalAsync()
@@ -19,8 +19,7 @@ internal class ModalsModule(ILogger<ModalsModule> logger, GitHubService gitHubSe
 
         await Context.Interaction.SendResponseAsync(InteractionCallback.DeferredMessage(MessageFlags.Ephemeral));
 
-        var labelComponents = Context.Components.OfType<Label>().Select(static label => label.Component).ToArray();
-        if (!TryGetExcludeUnknown(labelComponents, out var excludeUnknown))
+        if (!TryGetExcludeUnknown(Context.Components, out var excludeUnknown))
         {
             if (logger.IsEnabled(LogLevel.Warning)) logger.LogWarning("Setup modal interaction from Discord user {DiscordUserId} did not include the exclude-unknown checkbox", userId);
             await Context.Interaction.ModifyResponseAsync(x => { x.Content = "Invalid setup form. Please run `/setup` again."; });
@@ -91,16 +90,13 @@ internal class ModalsModule(ILogger<ModalsModule> logger, GitHubService gitHubSe
 
         await Context.Interaction.SendResponseAsync(InteractionCallback.DeferredMessage(MessageFlags.Ephemeral));
 
-        var labelComponents = Context.Components.OfType<Label>().Select(static label => label.Component).ToArray();
-        if (!TryGetExcludeUnknown(labelComponents, out var excludeUnknown))
+        if (!TryGetManualSetupValues(Context.Components, out var excludeUnknown, out var username))
         {
             if (logger.IsEnabled(LogLevel.Warning)) logger.LogWarning("Manual setup modal interaction from Discord user {DiscordUserId} did not include the exclude-unknown checkbox", userId);
             await Context.Interaction.ModifyResponseAsync(x => { x.Content = "Invalid setup form. Please run `/setup-manual` again."; });
             return;
         }
 
-        var usernameInput = labelComponents.OfType<TextInput>().FirstOrDefault(textInput => textInput.CustomId == ApplicationConfiguration.DiscordComponents.WidgetSetupManualGitHubUsernameId);
-        var username = usernameInput?.Value.Trim();
         if (string.IsNullOrWhiteSpace(username))
         {
             if (logger.IsEnabled(LogLevel.Warning)) logger.LogWarning("Manual setup modal interaction from Discord user {DiscordUserId} did not include a GitHub username", userId);
@@ -131,7 +127,7 @@ internal class ModalsModule(ILogger<ModalsModule> logger, GitHubService gitHubSe
             await Context.Client.Rest.SendRequestAsync(
                 method: HttpMethod.Patch,
                 content: content,
-                route: $"/applications/{Context.Client.Id}/users/{userId}/identities/0/profile"
+                route: $"/applications/{Context.Client.Id}/users/{userId}/identities/{userId}/profile"
             );
         }
         catch (Exception ex)
@@ -182,16 +178,53 @@ internal class ModalsModule(ILogger<ModalsModule> logger, GitHubService gitHubSe
         return true;
     }
 
-    private static bool TryGetExcludeUnknown(ILabelComponent[] labelComponents, out bool excludeUnknown)
+    private static bool TryGetExcludeUnknown(IReadOnlyList<IModalComponent> components, out bool excludeUnknown)
     {
-        var checkbox = labelComponents.OfType<Checkbox>().FirstOrDefault(x => x.CustomId == ApplicationConfiguration.DiscordComponents.WidgetSetupExcludeUnknownId);
-        if (checkbox is null)
+        for (var i = 0; i < components.Count; i++)
+        {
+            if (components[i] is Label { Component: Checkbox { CustomId: ApplicationConfiguration.DiscordComponents.WidgetSetupExcludeUnknownId } checkbox })
+            {
+                excludeUnknown = checkbox.Checked;
+                return true;
+            }
+        }
+
+        excludeUnknown = false;
+        return false;
+    }
+
+    private static bool TryGetManualSetupValues(IReadOnlyList<IModalComponent> components, out bool excludeUnknown, out string? username)
+    {
+        Checkbox? excludeUnknownCheckbox = null;
+        TextInput? usernameInput = null;
+
+        for (var i = 0; i < components.Count; i++)
+        {
+            if (components[i] is not Label label) continue;
+
+            switch (label.Component)
+            {
+                case Checkbox checkbox when excludeUnknownCheckbox is null && checkbox.CustomId == ApplicationConfiguration.DiscordComponents.WidgetSetupExcludeUnknownId:
+                    excludeUnknownCheckbox = checkbox;
+                    break;
+
+                case TextInput textInput when usernameInput is null && textInput.CustomId == ApplicationConfiguration.DiscordComponents.WidgetSetupManualGitHubUsernameId:
+                    usernameInput = textInput;
+                    break;
+            }
+
+            if (excludeUnknownCheckbox is not null && usernameInput is not null) break;
+        }
+
+        if (excludeUnknownCheckbox is null)
         {
             excludeUnknown = false;
+            username = null;
             return false;
         }
 
-        excludeUnknown = checkbox.Checked;
+        excludeUnknown = excludeUnknownCheckbox.Checked;
+        username = usernameInput?.Value.Trim();
         return true;
     }
 }

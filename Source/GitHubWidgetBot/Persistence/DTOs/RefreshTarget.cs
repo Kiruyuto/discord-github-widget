@@ -1,6 +1,6 @@
 namespace GitHubWidgetBot.Persistence.DTOs;
 
-internal class RefreshTarget : DbEntity
+internal sealed class RefreshTarget : DbEntity
 {
     public required ulong DiscordUserId { get; init; }
     public required string GitHubUsername { get; set; }
