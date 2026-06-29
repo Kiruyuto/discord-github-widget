@@ -30,12 +30,21 @@ internal sealed class ApplicationCommandCommandResultHandler<TContext> : IApplic
         // If the interaction was already acknowledged by a handler (E.g.: Through deferral), edit the response instead.
         try
         {
-            InteractionMessageProperties messageProps = new() { Content = ApplicationConfiguration.UserError, Flags = MessageFlags.Ephemeral, };
+            var messageProps = InteractionResponseBuilder.CreateErrorCard(
+                heading: "# Command failed",
+                body: ApplicationConfiguration.UserError,
+                flags: MessageFlags.Ephemeral
+            );
             await interaction.SendResponseAsync(InteractionCallback.Message(messageProps));
         }
         catch (RestException ex) when (ex.Error?.Message == "Interaction has already been acknowledged.")
         {
-            await interaction.ModifyResponseAsync(x => { x.Content = ApplicationConfiguration.UserError; });
+            await interaction.ModifyResponseAsync(static options => InteractionResponseBuilder.ApplyErrorCard(
+                options: options,
+                heading: "# Command failed",
+                body: ApplicationConfiguration.UserError,
+                flags: MessageFlags.Ephemeral
+            ));
         }
     }
 }

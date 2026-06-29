@@ -140,7 +140,7 @@ internal sealed class GitHubService(ILogger<GitHubService> logger, HttpClient ht
             return new GitHubDeviceAuthorization(
                 DeviceCode: deviceCode,
                 UserCode: userCode,
-                VerificationUri: verificationUri,
+                VerificationUrl: verificationUri,
                 ExpiresAt: DateTimeOffset.UtcNow.AddSeconds(expiresIn),
                 PollIntervalSeconds: interval
             );
