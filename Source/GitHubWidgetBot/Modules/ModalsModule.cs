@@ -22,7 +22,12 @@ internal sealed class ModalsModule(ILogger<ModalsModule> logger, GitHubService g
         if (!TryGetExcludeUnknown(Context.Components, out var excludeUnknown))
         {
             if (logger.IsEnabled(LogLevel.Warning)) logger.LogWarning("Setup modal interaction from Discord user {DiscordUserId} did not include the exclude-unknown checkbox", userId);
-            await Context.Interaction.ModifyResponseAsync(x => { x.Content = "Invalid setup form. Please run `/setup` again."; });
+            await Context.Interaction.ModifyResponseAsync(static x => InteractionResponseBuilder.ApplyErrorCard(
+                x,
+                heading: "# Invalid setup form",
+                body: "Please run `/setup` again.",
+                flags: MessageFlags.Ephemeral
+            ));
             return;
         }
 
@@ -30,7 +35,12 @@ internal sealed class ModalsModule(ILogger<ModalsModule> logger, GitHubService g
         if (ghOauthSetupData is null)
         {
             if (logger.IsEnabled(LogLevel.Warning)) logger.LogWarning("Setup modal interaction from Discord user {DiscordUserId} did not have a matching setup session", userId);
-            await Context.Interaction.ModifyResponseAsync(x => { x.Content = "Setup session expired or could not be found. Please run `/setup` again."; });
+            await Context.Interaction.ModifyResponseAsync(static x => InteractionResponseBuilder.ApplyErrorCard(
+                x,
+                heading: "# Setup session expired",
+                body: "The setup session expired or could not be found. Please run `/setup` again.",
+                flags: MessageFlags.Ephemeral
+            ));
             return;
         }
 
@@ -62,7 +72,12 @@ internal sealed class ModalsModule(ILogger<ModalsModule> logger, GitHubService g
                 );
             }
 
-            await Context.Interaction.ModifyResponseAsync(x => { x.Content = "Failed to obtain GH Oauth flow token. Have you finished authorization?"; });
+            await Context.Interaction.ModifyResponseAsync(static x => InteractionResponseBuilder.ApplyErrorCard(
+                x,
+                heading: "# GitHub authorization incomplete",
+                body: "Failed to obtain a GitHub OAuth flow token. Confirm authorization on GitHub, then try setup again.",
+                flags: MessageFlags.Ephemeral
+            ));
             return;
         }
 
@@ -93,14 +108,24 @@ internal sealed class ModalsModule(ILogger<ModalsModule> logger, GitHubService g
         if (!TryGetManualSetupValues(Context.Components, out var excludeUnknown, out var username))
         {
             if (logger.IsEnabled(LogLevel.Warning)) logger.LogWarning("Manual setup modal interaction from Discord user {DiscordUserId} did not include the exclude-unknown checkbox", userId);
-            await Context.Interaction.ModifyResponseAsync(x => { x.Content = "Invalid setup form. Please run `/setup-manual` again."; });
+            await Context.Interaction.ModifyResponseAsync(static x => InteractionResponseBuilder.ApplyErrorCard(
+                x,
+                heading: "# Invalid setup form",
+                body: "Please run `/setup-manual` again.",
+                flags: MessageFlags.Ephemeral
+            ));
             return;
         }
 
         if (string.IsNullOrWhiteSpace(username))
         {
             if (logger.IsEnabled(LogLevel.Warning)) logger.LogWarning("Manual setup modal interaction from Discord user {DiscordUserId} did not include a GitHub username", userId);
-            await Context.Interaction.ModifyResponseAsync(x => { x.Content = "Invalid setup form. Please enter a GitHub username."; });
+            await Context.Interaction.ModifyResponseAsync(static x => InteractionResponseBuilder.ApplyErrorCard(
+                x,
+                heading: "# Invalid setup form",
+                body: "Please enter a GitHub username.",
+                flags: MessageFlags.Ephemeral
+            ));
             return;
         }
 
@@ -113,7 +138,12 @@ internal sealed class ModalsModule(ILogger<ModalsModule> logger, GitHubService g
         if (!widget.HasValue)
         {
             if (logger.IsEnabled(LogLevel.Warning)) logger.LogWarning("Failed to build widget data for Discord user {DiscordUserId} and GitHub user @{GitHubUsername}", userId, gitHubUsername);
-            await Context.Interaction.ModifyResponseAsync(x => { x.Content = "Failed to fetch user data from GitHub >:("; });
+            await Context.Interaction.ModifyResponseAsync(static x => InteractionResponseBuilder.ApplyErrorCard(
+                x,
+                heading: "# Could not fetch GitHub data",
+                body: "Failed to fetch user data from GitHub.",
+                flags: MessageFlags.Ephemeral
+            ));
             return false;
         }
 
@@ -133,16 +163,21 @@ internal sealed class ModalsModule(ILogger<ModalsModule> logger, GitHubService g
         catch (Exception ex)
         {
             if (logger.IsEnabled(LogLevel.Error)) logger.LogError(ex, "Failed to update Discord widget profile for Discord user {DiscordUserId} and GitHub user @{GitHubUsername}", userId, normalizedGitHubUsername);
-            await Context.Interaction.ModifyResponseAsync(x => { x.Content = "Failed to update your Discord widget profile."; });
+            await Context.Interaction.ModifyResponseAsync(static x => InteractionResponseBuilder.ApplyErrorCard(
+                x,
+                heading: "# Could not update Discord widget",
+                body: "Failed to update your Discord widget profile.",
+                flags: MessageFlags.Ephemeral
+            ));
             return false;
         }
 
-        await Context.Interaction.ModifyResponseAsync(x =>
-        {
-            x.Flags = MessageFlags.Ephemeral;
-            x.Content = $"Successfully validated and configured widget!\n" +
-                        $"Now you should be able to add it to your Discord profile! (Restart discord => `Profile` => `Add Widget`)";
-        });
+        await Context.Interaction.ModifyResponseAsync(static x => InteractionResponseBuilder.ApplyCard(
+            x,
+            heading: "# Widget configured",
+            body: "Successfully validated and configured your widget.\nRestart Discord, open `Profile`, then choose `Add Widget`.",
+            flags: MessageFlags.Ephemeral
+        ));
 
         var utcNow = DateTimeOffset.UtcNow;
         var refreshTarget = await dbContext.RefreshTargets.FirstOrDefaultAsync(target => target.DiscordUserId == userId);
