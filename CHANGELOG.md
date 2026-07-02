@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.1.1](https://github.com/Kiruyuto/discord-github-widget/compare/discord-github-widget-0.1.0...discord-github-widget-0.1.1) (2026-07-02)
+
+
+### Bug Fixes
+
+* Widget refresh identity profile route ([cf956be](https://github.com/Kiruyuto/discord-github-widget/commit/cf956befb1576875ecd7e4f4801bca98c8cca613))
+
+
+### Chores & Maintenance
+
+* Reference cleanups ([6520d81](https://github.com/Kiruyuto/discord-github-widget/commit/6520d8123ba09f7aa66d0bbc7939997fe1d9076e))
+
 ## [0.1.0](https://github.com/Kiruyuto/discord-github-widget/compare/discord-github-widget-0.0.1...discord-github-widget-0.1.0) (2026-06-29)
 
 
