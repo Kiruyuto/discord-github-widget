@@ -83,7 +83,7 @@ internal sealed class WidgetRefreshHostedService(ILogger<WidgetRefreshHostedServ
                     await restClient.SendRequestAsync(
                         method: HttpMethod.Patch,
                         content: content,
-                        route: $"/applications/{applicationId}/users/{refreshTarget.DiscordUserId}/identities/0/profile",
+                        route: $"/applications/{applicationId}/users/{refreshTarget.DiscordUserId}/identities/{refreshTarget.DiscordUserId}/profile",
                         cancellationToken: cancellationToken
                     );
 

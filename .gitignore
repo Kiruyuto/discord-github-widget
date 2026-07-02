@@ -73,6 +73,7 @@ nuget.config
 **/.idea/shelf/
 **/.idea/**/httpRequests/
 **/.idea/**/dataSources/
+**/.idea/**/dataSources.xml
 **/.idea/**/dataSources.local.xml
 **/.idea/**/tasks.xml
 **/.idea/**/usage.statistics.xml
@@ -80,6 +81,7 @@ nuget.config
 **/.idea/**/shelf
 **/.idea/**/dataSources.ids
 **/.idea/**/sqlDataSources.xml
+**/.idea/**/db-forest-config.xml
 **/.idea/**/dynamic.xml
 **/.idea/**/uiDesigner.xml
 **/.idea/**/dbnavigator.xml
