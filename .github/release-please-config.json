@@ -11,6 +11,11 @@
       "component": "discord-github-widget",
       "changelog-path": "CHANGELOG.md",
       "release-type": "simple",
+      "exclude-paths": [
+        ".github",
+        "Docs",
+        "Assets"
+      ],
       "extra-files": [
         {
           "type": "xml",
