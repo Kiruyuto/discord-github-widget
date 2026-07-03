@@ -1,3 +1,5 @@
+using GitHubWidgetBot.Configuration;
+using GitHubWidgetBot.Configuration.Options;
 using GitHubWidgetBot.Persistence;
 using GitHubWidgetBot.Persistence.DTOs;
 using GitHubWidgetBot.Services;

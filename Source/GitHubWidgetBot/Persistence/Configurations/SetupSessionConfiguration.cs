@@ -19,7 +19,7 @@ internal sealed class SetupSessionConfiguration : IEntityTypeConfiguration<Setup
         builder.Property(static x => x.GitHubPollIntervalSeconds).IsRequired();
         builder.Property(static x => x.GitHubExpiresAtUtc).IsRequired();
 
-        builder.HasIndex(static x => new { x.DiscordUserId }).IsUnique();
+        builder.HasIndex(static x => x.DiscordUserId).IsUnique();
         builder.HasIndex(static x => x.GitHubExpiresAtUtc);
     }
 }

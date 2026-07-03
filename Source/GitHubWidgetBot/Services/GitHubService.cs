@@ -3,6 +3,8 @@ using System.Net;
 using System.Net.Http.Headers;
 using System.Runtime.InteropServices;
 using System.Text.Json;
+using GitHubWidgetBot.Configuration;
+using GitHubWidgetBot.Configuration.Options;
 using GitHubWidgetBot.DTOs;
 using GitHubWidgetBot.DTOs.GitHub;
 using Microsoft.Extensions.Logging;

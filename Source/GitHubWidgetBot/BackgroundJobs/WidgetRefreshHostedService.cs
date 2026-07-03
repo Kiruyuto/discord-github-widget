@@ -1,13 +1,20 @@
 using GitHubWidgetBot.Persistence;
+using GitHubWidgetBot.Services;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using NetCord.Rest;
 
-namespace GitHubWidgetBot.Services;
+namespace GitHubWidgetBot.BackgroundJobs;
 
-internal sealed class WidgetRefreshHostedService(ILogger<WidgetRefreshHostedService> logger, IServiceScopeFactory serviceScopeFactory, GitHubService gitHubService, RestClient restClient) : BackgroundService
+internal sealed class WidgetRefreshHostedService(
+    ILogger<WidgetRefreshHostedService> logger,
+    IServiceScopeFactory serviceScopeFactory,
+    GitHubService gitHubService,
+    RestClient restClient,
+    DiscordWidgetProfileService discordWidgetProfileService
+) : BackgroundService
 {
     private static readonly TimeSpan RunInterval = TimeSpan.FromMinutes(10);
     private static readonly TimeSpan RefreshInterval = TimeSpan.FromHours(6);
@@ -79,11 +86,10 @@ internal sealed class WidgetRefreshHostedService(ILogger<WidgetRefreshHostedServ
             {
                 try
                 {
-                    using var content = widget.Value.ToJsonContent();
-                    await restClient.SendRequestAsync(
-                        method: HttpMethod.Patch,
-                        content: content,
-                        route: $"/applications/{applicationId}/users/{refreshTarget.DiscordUserId}/identities/{refreshTarget.DiscordUserId}/profile",
+                    await discordWidgetProfileService.UpdateProfileAsync(
+                        applicationId: applicationId,
+                        discordUserId: refreshTarget.DiscordUserId,
+                        widget: widget.Value,
                         cancellationToken: cancellationToken
                     );
 

@@ -14,7 +14,8 @@
       "exclude-paths": [
         ".github",
         "Docs",
-        "Assets"
+        "Assets",
+        "Tests"
       ],
       "extra-files": [
         {

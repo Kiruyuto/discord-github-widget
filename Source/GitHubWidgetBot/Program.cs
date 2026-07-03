@@ -1,3 +1,6 @@
+using GitHubWidgetBot.BackgroundJobs;
+using GitHubWidgetBot.Configuration;
+using GitHubWidgetBot.Configuration.Options;
 using GitHubWidgetBot.Modules;
 using GitHubWidgetBot.Persistence;
 using GitHubWidgetBot.Services;
@@ -77,6 +80,8 @@ internal static class Program
             })
             .AddComponentInteractions<ModalInteraction, ModalInteractionContext>(options => options.ResultHandler = new ResultHandlers.ComponentInteractionResultHandler<ModalInteractionContext>())
             .AddComponentInteractions<ButtonInteraction, ButtonInteractionContext>(options => options.ResultHandler = new ResultHandlers.ComponentInteractionResultHandler<ButtonInteractionContext>());
+
+        serviceCollection.AddSingleton<DiscordWidgetProfileService>();
     }
 
     [SuppressMessage("Minor Code Smell", "S1075:URIs should not be hardcoded")]

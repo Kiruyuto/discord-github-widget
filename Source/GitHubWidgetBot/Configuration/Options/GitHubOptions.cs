@@ -1,6 +1,6 @@
 using Microsoft.Extensions.Options;
 
-namespace GitHubWidgetBot.Services;
+namespace GitHubWidgetBot.Configuration.Options;
 
 internal sealed class GitHubOptions
 {

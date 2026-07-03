@@ -1,3 +1,4 @@
+using GitHubWidgetBot.Configuration;
 using GitHubWidgetBot.Persistence.Configurations;
 using GitHubWidgetBot.Persistence.DTOs;
 using Microsoft.EntityFrameworkCore;

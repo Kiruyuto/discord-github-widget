@@ -4,7 +4,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 
-namespace GitHubWidgetBot.Services;
+namespace GitHubWidgetBot.BackgroundJobs;
 
 internal sealed class SetupSessionCleanupHostedService(ILogger<SetupSessionCleanupHostedService> logger, IServiceScopeFactory serviceScopeFactory) : BackgroundService
 {

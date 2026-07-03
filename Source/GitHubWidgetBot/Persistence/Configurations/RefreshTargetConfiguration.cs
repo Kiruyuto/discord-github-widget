@@ -18,7 +18,7 @@ internal sealed class RefreshTargetConfiguration : IEntityTypeConfiguration<Refr
         builder.Property(static x => x.LastAttemptUtc).IsRequired();
         builder.Property(static x => x.FailureCount).IsRequired().HasDefaultValue(default(uint));
 
-        builder.HasIndex(static x => new { x.DiscordUserId }).IsUnique();
-        builder.HasIndex(static x => new { x.LastAttemptUtc });
+        builder.HasIndex(static x => x.DiscordUserId).IsUnique();
+        builder.HasIndex(static x => x.LastAttemptUtc);
     }
 }
