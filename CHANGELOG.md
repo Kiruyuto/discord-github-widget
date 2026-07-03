@@ -1,5 +1,32 @@
 # Changelog
 
+## [0.1.2](https://github.com/Kiruyuto/discord-github-widget/compare/discord-github-widget-0.1.1...discord-github-widget-0.1.2) (2026-07-03)
+
+
+### Bug Fixes
+
+* Disallow `/invite` coomand to target bots ([5d5776e](https://github.com/Kiruyuto/discord-github-widget/commit/5d5776e973006ebbdfca7e77a113e34f6aa3e177))
+
+
+### CI/CD
+
+* Exclude tests from `release-please` configuration ([27eb571](https://github.com/Kiruyuto/discord-github-widget/commit/27eb57174e2ad297f62940ce27b94e80ebe53137))
+
+
+### Chores & Maintenance
+
+* **dependencies:** Update dependency TUnit to 1.58.0 ([#21](https://github.com/Kiruyuto/discord-github-widget/issues/21)) ([dbff098](https://github.com/Kiruyuto/discord-github-widget/commit/dbff098dad0ee9bc04a0707c5122307eea4dfbb2))
+
+
+### Tests
+
+* Improve coverage ([#26](https://github.com/Kiruyuto/discord-github-widget/issues/26)) ([27eb571](https://github.com/Kiruyuto/discord-github-widget/commit/27eb57174e2ad297f62940ce27b94e80ebe53137))
+
+
+### Refactors
+
+* Extract widget update to a common dependency ([27eb571](https://github.com/Kiruyuto/discord-github-widget/commit/27eb57174e2ad297f62940ce27b94e80ebe53137))
+
 ## [0.1.1](https://github.com/Kiruyuto/discord-github-widget/compare/discord-github-widget-0.1.0...discord-github-widget-0.1.1) (2026-07-02)
 
 
