@@ -35,11 +35,17 @@ jobs:
         with:
           global-json-file: "global.json"
 
+      - name: "Install global tools"
+        run: dotnet tool install --global dotnet-ef
+
       - name: "Restore dependencies"
         run: dotnet restore
 
       - name: "Build"
         run: dotnet build --no-restore --verbosity minimal --configuration ${{ matrix.configuration }}
+
+      - name: "Check for pending migrations"
+        run: dotnet ef migrations has-pending-model-changes --no-build --project ./Source/GitHubWidgetBot/GitHubWidgetBot.csproj --startup-project ./Source/GitHubWidgetBot/GitHubWidgetBot.csproj --context ApplicationDbContext --configuration ${{ matrix.configuration }}
 
       - name: "Format"
         run: dotnet format --no-restore --verbosity diagnostic --severity info --verify-no-changes
