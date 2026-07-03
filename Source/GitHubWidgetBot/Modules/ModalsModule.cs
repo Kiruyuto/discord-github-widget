@@ -1,3 +1,4 @@
+using GitHubWidgetBot.Configuration;
 using GitHubWidgetBot.Persistence;
 using GitHubWidgetBot.Persistence.DTOs;
 using GitHubWidgetBot.Services;
@@ -9,7 +10,12 @@ using NetCord.Services.ComponentInteractions;
 
 namespace GitHubWidgetBot.Modules;
 
-internal sealed class ModalsModule(ILogger<ModalsModule> logger, GitHubService gitHubService, ApplicationDbContext dbContext) : ComponentInteractionModule<ModalInteractionContext>
+internal sealed class ModalsModule(
+    ILogger<ModalsModule> logger,
+    GitHubService gitHubService,
+    DiscordWidgetProfileService discordWidgetProfileService,
+    ApplicationDbContext dbContext
+) : ComponentInteractionModule<ModalInteractionContext>
 {
     [ComponentInteraction(ApplicationConfiguration.DiscordComponents.WidgetSetupModalId)]
     public async Task ProcessModalAsync()
@@ -150,14 +156,13 @@ internal sealed class ModalsModule(ILogger<ModalsModule> logger, GitHubService g
         // GitHub username lookup is case-insensitive, but the API returns the canonical login casing.
         // Normalize here instead of adding weird CKs, changing type to citext, or another workaround.
         var normalizedGitHubUsername = widget.Value.Data.Username;
-        using var content = widget.Value.ToJsonContent();
         try
         {
             if (logger.IsEnabled(LogLevel.Debug)) logger.LogDebug("Updating Discord widget profile for Discord user {DiscordUserId}", userId);
-            await Context.Client.Rest.SendRequestAsync(
-                method: HttpMethod.Patch,
-                content: content,
-                route: $"/applications/{Context.Client.Id}/users/{userId}/identities/{userId}/profile"
+            await discordWidgetProfileService.UpdateProfileAsync(
+                applicationId: Context.Client.Id,
+                discordUserId: userId,
+                widget: widget.Value
             );
         }
         catch (Exception ex)

@@ -104,7 +104,7 @@ internal readonly record struct Widget(Widget.DataPayload Data)
         writer.WriteEndObject();
     }
 
-    private static string? FormatCount(uint? value) => value.HasValue ? FormatCount(value.GetValueOrDefault()) : null;
+    private static string? FormatCount(uint? value) => value.HasValue ? FormatCount(value.Value) : null;
 
     private static string FormatCount(uint value)
     {

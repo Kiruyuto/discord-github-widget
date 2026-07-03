@@ -1,4 +1,4 @@
-namespace GitHubWidgetBot;
+namespace GitHubWidgetBot.Configuration;
 
 internal static class ApplicationConfiguration
 {

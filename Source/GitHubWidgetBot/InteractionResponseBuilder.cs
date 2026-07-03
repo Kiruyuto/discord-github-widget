@@ -1,3 +1,4 @@
+using GitHubWidgetBot.Configuration;
 using NetCord;
 using NetCord.Rest;
 

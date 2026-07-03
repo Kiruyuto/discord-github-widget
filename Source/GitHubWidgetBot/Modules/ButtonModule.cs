@@ -1,3 +1,4 @@
+using GitHubWidgetBot.Configuration;
 using Microsoft.Extensions.Logging;
 using NetCord.Rest;
 using NetCord.Services.ComponentInteractions;
