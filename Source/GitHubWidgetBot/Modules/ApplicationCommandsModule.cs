@@ -190,6 +190,17 @@ internal sealed class ApplicationCommandsModule(
             return;
         }
 
+        if (user.IsBot || user.Id == Context.Client.Id)
+        {
+            if (logger.IsEnabled(LogLevel.Debug)) logger.LogDebug("Discord user {DiscordUserId} tried to invite bot", Context.User.Id);
+            await Context.Interaction.SendResponseAsync(InteractionCallback.Message(InteractionResponseBuilder.CreateErrorCard(
+                heading: "# Invite someone else",
+                body: $"You cannot invite bots & applications. Choose a {Format.Italic("living")} user to invite.",
+                flags: MessageFlags.Ephemeral
+            )));
+            return;
+        }
+
         var allowedToConfigure = await GetConfigurationPermissionAsync(Context.User.Id);
         if (!allowedToConfigure)
         {
